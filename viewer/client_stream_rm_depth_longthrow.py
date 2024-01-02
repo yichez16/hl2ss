@@ -18,7 +18,7 @@ import hl2ss_lnm
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = "192.168.1.7"
+host = "192.168.0.110"
 
 # Operating mode
 # 0: video
@@ -59,15 +59,33 @@ listener.start()
 client = hl2ss_lnm.rx_rm_depth_longthrow(host, hl2ss.StreamPort.RM_DEPTH_LONGTHROW, mode=mode, divisor=divisor)
 client.open()
 
+# Initialize VideoWriters
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out_depth = cv2.VideoWriter('./data/depth_long.avi', fourcc, 5, (320, 288), isColor=False)
+out_ab = cv2.VideoWriter('./data/ab_long.avi', fourcc, 5, (320, 288), isColor=False)
+
 while (enable):
     data = client.get_next_packet()
 
     print(f'Pose at time {data.timestamp}')
     print(data.pose)
+
+    # Scale and write the frames
+    depth_scaled = (data.payload.depth / np.max(data.payload.depth) * 255).astype(np.uint8)
+    ab_scaled = (data.payload.ab / np.max(data.payload.ab) * 255).astype(np.uint8)
+
     
     cv2.imshow('Depth', data.payload.depth / np.max(data.payload.depth)) # Scaled for visibility
     cv2.imshow('AB', data.payload.ab / np.max(data.payload.ab)) # Scaled for visibility
+
+    out_depth.write(depth_scaled)
+    out_ab.write(ab_scaled)
     cv2.waitKey(1)
 
+# Release the VideoWriters and other resources
+out_depth.release()
+out_ab.release()
 client.close()
 listener.join()
+
+

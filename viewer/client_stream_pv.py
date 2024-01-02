@@ -18,7 +18,7 @@ import hl2ss_lnm
 # Settings --------------------------------------------------------------------
 
 # HoloLens address
-host = "192.168.1.7"
+host = "192.168.0.110"
 
 # Operating mode
 # 0: video
@@ -79,6 +79,10 @@ else:
     client = hl2ss_lnm.rx_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO, mode=mode, width=width, height=height, framerate=framerate, divisor=divisor, profile=profile, decoded_format=decoded_format)
     client.open()
 
+    # Initialize VideoWriter
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # or use 'XVID' for .avi format
+    out = cv2.VideoWriter('./data/output.mp4', fourcc, framerate, (width, height))
+
     while (enable):
         data = client.get_next_packet()
 
@@ -88,7 +92,13 @@ else:
         print(f'Principal point: {data.payload.principal_point}')
 
         cv2.imshow('Video', data.payload.image)
+        out.write(data.payload.image)  # Write frame to video file
         cv2.waitKey(1)
+
+    # Release the VideoWriter and other resources
+    out.release()
+    client.close()
+    listener.join()
 
     client.close()
     listener.join()
