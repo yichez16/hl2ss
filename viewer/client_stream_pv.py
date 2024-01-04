@@ -1,15 +1,4 @@
-#------------------------------------------------------------------------------
-# This script receives video from the HoloLens front RGB camera and plays it.
-# The camera supports various resolutions and framerates. See
-# https://github.com/jdibenes/hl2ss/blob/main/etc/pv_configurations.txt
-# for a list of supported formats. The default configuration is 1080p 30 FPS. 
-# The stream supports three operating modes: 0) video, 1) video + camera pose, 
-# 2) query calibration (single transfer).
-# Press esc to stop.
-#------------------------------------------------------------------------------
-
 from pynput import keyboard
-
 import cv2
 import hl2ss_imshow
 import hl2ss
@@ -30,8 +19,8 @@ mode = hl2ss.StreamMode.MODE_1
 enable_mrc = False
 
 # Camera parameters
-width     = 1920
-height    = 1080
+width = 1920
+height = 1080
 framerate = 30
 
 # Framerate denominator (must be > 0)
@@ -49,6 +38,7 @@ profile = hl2ss.VideoProfile.H265_MAIN
 # 'rgba'
 # 'gray8'
 decoded_format = 'bgr24'
+image_counter = 0
 
 #------------------------------------------------------------------------------
 
@@ -79,10 +69,6 @@ else:
     client = hl2ss_lnm.rx_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO, mode=mode, width=width, height=height, framerate=framerate, divisor=divisor, profile=profile, decoded_format=decoded_format)
     client.open()
 
-    # Initialize VideoWriter
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # or use 'XVID' for .avi format
-    out = cv2.VideoWriter('./data/output.mp4', fourcc, framerate, (width, height))
-
     while (enable):
         data = client.get_next_packet()
 
@@ -92,15 +78,19 @@ else:
         print(f'Principal point: {data.payload.principal_point}')
 
         cv2.imshow('Video', data.payload.image)
-        out.write(data.payload.image)  # Write frame to video file
+
+        # Save each frame as an image
+        frame_filename = f"./data/rgb/frame_{image_counter}.png"  # Name of the file can be changed as needed
+        cv2.imwrite(frame_filename, data.payload.image)
+
         cv2.waitKey(1)
+        image_counter += 1
 
-    # Release the VideoWriter and other resources
-    out.release()
-    client.close()
-    listener.join()
-
+    # Release the client and listener
     client.close()
     listener.join()
 
 hl2ss_lnm.stop_subsystem_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO)
+
+
+
