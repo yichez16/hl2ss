@@ -15,6 +15,8 @@ import hl2ss
 import hl2ss_lnm
 import hl2ss_mp
 import hl2ss_3dcv
+import os
+import time
 
 # Settings --------------------------------------------------------------------
 
@@ -35,6 +37,9 @@ buffer_length = 10
 # Maximum depth in meters
 max_depth = 3.0
 
+# Directory for saving images
+images_dir = '../rgbd/data_14_false'
+os.makedirs(images_dir, exist_ok=True)
 #------------------------------------------------------------------------------
 
 if __name__ == '__main__':
@@ -87,6 +92,11 @@ if __name__ == '__main__':
     pv_intrinsics = hl2ss.create_pv_intrinsics_placeholder()
     pv_extrinsics = np.eye(4, 4, dtype=np.float32)
  
+    image_counter = 0
+
+
+    time.sleep(5)  # Sleeps for 2 seconds
+
     # Main Loop ---------------------------------------------------------------
     while (enable):
         # Wait for RM Depth Long Throw frame ----------------------------------
@@ -127,7 +137,25 @@ if __name__ == '__main__':
         image = np.hstack((hl2ss_3dcv.rm_depth_to_rgb(depth) / 8, color / 255)) # Depth scaled for visibility
         cv2.imshow('RGBD', image)
 
+        # Normalize and convert depth data if necessary ------------------------
+        # Ensure depth data is in the correct format (e.g., 8-bit or 16-bit)
+        # Example for converting to 16-bit:
+        max_depth_value = np.max(depth)
+        depth_normalized = (depth / max_depth_value * (2**16 - 1)).astype(np.uint16)
+
+        # Save RGB and Depth images -------------------------------------------
+        rgb_filename = os.path.join(images_dir, f'rgb_image_{image_counter:04d}.png')
+        depth_filename = os.path.join(images_dir, f'depth_image_{image_counter:04d}.png')
+        
+        cv2.imwrite(rgb_filename, color)  # Save RGB image
+        cv2.imwrite(depth_filename, depth_normalized)  # Save depth image as PNG
+
+        image_counter += 1
+
+        # Press space to stop
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+        if image_counter > 300:
             break
 
         # Convert to Open3D RGBD image and create pointcloud ------------------

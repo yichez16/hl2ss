@@ -20,6 +20,6 @@ def resize_images_in_folder(source_folder, target_folder, target_size=(640, 192)
     print(f"All images resized and saved in '{target_folder}'")
 
 # Usage
-source_folder = './data/rgb'  # Replace with the path to your source folder
-target_folder = './data/rgb_640'  # Replace with the path to your target folder
+source_folder = './data_2_false/rgb'  # Replace with the path to your source folder
+target_folder = './data_2_false/rgb_640'  # Replace with the path to your target folder
 resize_images_in_folder(source_folder, target_folder)

@@ -8,7 +8,7 @@ from pynput import keyboard
 
 import multiprocessing as mp
 import numpy as np
-import open3d as o3d
+# import open3d as o3d
 import cv2
 import hl2ss_imshow
 import hl2ss
@@ -19,7 +19,7 @@ import hl2ss_3dcv
 #------------------------------------------------------------------------------
 
 # HoloLens address
-host = '192.168.1.7'
+host = '192.168.0.110'
 
 # Port: RM Depth AHAT or RM Depth Long Throw
 port = hl2ss.StreamPort.RM_DEPTH_LONGTHROW
@@ -59,10 +59,10 @@ if __name__ == '__main__':
     fps = hl2ss.Parameters_RM_DEPTH_LONGTHROW.FPS if (port == hl2ss.StreamPort.RM_DEPTH_LONGTHROW) else hl2ss.Parameters_RM_DEPTH_AHAT.FPS
 
     # Create Open3D visualizer ------------------------------------------------
-    vis = o3d.visualization.Visualizer()
-    vis.create_window()
-    pcd = o3d.geometry.PointCloud()
-    first_pcd = True
+    # vis = o3d.visualization.Visualizer()
+    # vis.create_window()
+    # pcd = o3d.geometry.PointCloud()
+    # first_pcd = True
 
     # Start stream ------------------------------------------------------------
     producer = hl2ss_mp.producer()
@@ -94,27 +94,27 @@ if __name__ == '__main__':
         cv2.imshow('RGBD', image)
         cv2.waitKey(1)
 
-        # Display pointcloud --------------------------------------------------
-        xyz = hl2ss_3dcv.rm_depth_to_points(depth, xy1)
-        xyz = hl2ss_3dcv.block_to_list(xyz)
-        rgb = hl2ss_3dcv.block_to_list(ab)
-        d = hl2ss_3dcv.block_to_list(depth).reshape((-1,))
-        xyz = xyz[d > 0, :]
-        rgb = rgb[d > 0, :]
-        rgb = np.hstack((rgb, rgb, rgb))
+        # # Display pointcloud --------------------------------------------------
+        # xyz = hl2ss_3dcv.rm_depth_to_points(depth, xy1)
+        # xyz = hl2ss_3dcv.block_to_list(xyz)
+        # rgb = hl2ss_3dcv.block_to_list(ab)
+        # d = hl2ss_3dcv.block_to_list(depth).reshape((-1,))
+        # xyz = xyz[d > 0, :]
+        # rgb = rgb[d > 0, :]
+        # rgb = np.hstack((rgb, rgb, rgb))
 
-        pcd.points = o3d.utility.Vector3dVector(xyz)
-        if (use_ab):
-            pcd.colors = o3d.utility.Vector3dVector(rgb)
+        # pcd.points = o3d.utility.Vector3dVector(xyz)
+        # if (use_ab):
+        #     pcd.colors = o3d.utility.Vector3dVector(rgb)
 
-        if (first_pcd):
-            vis.add_geometry(pcd)
-            first_pcd = False
-        else:
-            vis.update_geometry(pcd)
+        # if (first_pcd):
+        #     vis.add_geometry(pcd)
+        #     first_pcd = False
+        # else:
+        #     vis.update_geometry(pcd)
 
-        vis.poll_events()
-        vis.update_renderer()
+        # vis.poll_events()
+        # vis.update_renderer()
 
     # Stop stream -------------------------------------------------------------
     sink_depth.detach()

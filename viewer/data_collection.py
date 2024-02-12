@@ -5,6 +5,11 @@ import hl2ss_imshow
 import hl2ss
 import hl2ss_lnm
 import os
+import time
+
+# Wait for 3 seconds
+time.sleep(3)
+
 
 # Settings --------------------------------------------------------------------
 host = "192.168.0.110"
@@ -23,8 +28,9 @@ depth_profile_ab = hl2ss.VideoProfile.H265_MAIN
 
 # Image Saving Settings
 image_counter = 0
-save_path_rgb = './data_0_false/rgb/'
-save_path_depth = './data_0_false/epth/'
+save_path_rgb = './data_5_false/rgb/'
+save_path_depth = './data_5_false/depth/'
+
 
 # Create directories if they don't exist
 os.makedirs(save_path_rgb, exist_ok=True)
@@ -40,6 +46,9 @@ listener = keyboard.Listener(on_press=on_press)
 listener.start()
 
 # Initialize Clients for RGB and Depth
+
+# hl2ss_lnm.start_subsystem_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO, enable_mrc=enable_mrc)
+
 rgb_client = hl2ss_lnm.rx_pv(host, hl2ss.StreamPort.PERSONAL_VIDEO, mode=mode, width=rgb_width, height=rgb_height, framerate=rgb_framerate, divisor=divisor, profile=rgb_profile, decoded_format=rgb_decoded_format)
 depth_client = hl2ss_lnm.rx_rm_depth_ahat(host, hl2ss.StreamPort.RM_DEPTH_AHAT, mode=mode, divisor=divisor, profile_z=depth_profile_z, profile_ab=depth_profile_ab)
 
@@ -48,7 +57,7 @@ depth_client.open()
 
 # Main Loop
 while enable:
-    # Retrieve RGB data
+    # # Retrieve RGB data
     rgb_data = rgb_client.get_next_packet()
     cv2.imshow('RGB Video', rgb_data.payload.image)
     rgb_frame_filename = f"{save_path_rgb}frame_{image_counter}.png"
@@ -66,7 +75,7 @@ while enable:
         break
 
 # Cleanup
-rgb_client.close()
+# rgb_client.close()
 depth_client.close()
 listener.join()
 cv2.destroyAllWindows()
